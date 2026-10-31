@@ -9,7 +9,7 @@
       <array>
         <dict>
           <key>kind</key><string>software-package</string>
-          <key>url</key><string>https://github.com/hefeishihui/shihui-dist/releases/download/ios-1.8.2-25/ShiHui.ipa</string>
+          <key>url</key><string>https://hefeishihui.github.io/shihui-dist/ShiHui.ipa</string>
         </dict>
       </array>
       <key>metadata</key>
