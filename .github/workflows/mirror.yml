@@ -1,0 +1,59 @@
+name: Mirror ipa to Pages
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        default: ios-1.8.1-24
+permissions:
+  contents: write
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download ipa from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
+        run: gh release download "$TAG" -p ShiHui.ipa --clobber
+      - name: Commit ipa and manifest
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          VERSION="${TAG#ios-}"
+          PAGES="https://hefeishihui.github.io/shihui-dist"
+          cat > manifest.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>items</key>
+            <array>
+              <dict>
+                <key>assets</key>
+                <array>
+                  <dict>
+                    <key>kind</key><string>software-package</string>
+                    <key>url</key><string>${PAGES}/ShiHui.ipa</string>
+                  </dict>
+                </array>
+                <key>metadata</key>
+                <dict>
+                  <key>bundle-identifier</key><string>cn.sodar-woller.wordbook</string>
+                  <key>bundle-version</key><string>${VERSION}</string>
+                  <key>kind</key><string>software</string>
+                  <key>title</key><string>识汇</string>
+                </dict>
+              </dict>
+            </array>
+          </dict>
+          </plist>
+          PLIST
+          git config user.name "shihui-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add ShiHui.ipa manifest.plist
+          git commit -m "mirror ${TAG} ipa to pages"
+          git push
